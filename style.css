@@ -1,0 +1,121 @@
+* {
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, system-ui;
+}
+
+body {
+  margin: 0;
+  height: 100vh;
+  background: #f2f2f7;
+  display: grid;
+  place-items: center;
+}
+
+/* ===== Card ===== */
+
+.stepper-card {
+  width: 150px;
+  padding: 16px 14px 18px;
+  border-radius: 22px;
+  background: #4a4a4a;
+  color: white;
+  text-align: center;
+}
+
+/* ===== Label ===== */
+
+.label {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+/* ===== Value / Wheel ===== */
+
+.value {
+  height: 44px;
+  margin: 8px 0 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.wheel-number {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.num {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34px;
+  font-weight: 500;
+  will-change: transform, opacity, filter;
+  transition:
+    transform 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.28s ease,
+    filter 0.28s ease;
+}
+
+/* ===== Controls ===== */
+
+.controls {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 6px;
+}
+
+.btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: white;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.12s ease;
+}
+
+.btn:active {
+  transform: scale(0.9);
+}
+
+/* Liquid press ripple */
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at center,
+    rgba(0,0,0,0.15),
+    transparent 60%
+  );
+  transform: scale(0);
+  transition: transform 0.3s ease;
+}
+
+.btn:active::after {
+  transform: scale(1);
+}
+
+/* Optical centering */
+.icon {
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.minus-icon { transform: translateY(-1px); }
+.plus-icon  { transform: translateY(1px); }
+
+/* Disabled */
+.btn.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
