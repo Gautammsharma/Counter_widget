@@ -1,171 +1,184 @@
-const wheelNumber = document.getElementById('wheelNumber')
-const minusBtn = document.querySelector('.minus')
-const plusBtn = document.querySelector('.plus')
+;(() => {
+  /* ==========================
+     CONFIG
+  ========================== */
 
-let value = 2
-const MIN = 0
-const MAX = 99
+  const INITIAL_VALUE = 2
+  const MIN = 0
+  const MAX = 99
 
-/* ==========================
-   SOUND + HAPTIC
-========================== */
+  const HOLD_DELAY = 180
+  const HOLD_START_SPEED = 280
+  const HOLD_MIN_SPEED = 70
+  const HOLD_ACCELERATION = 0.85
 
-let audioUnlocked = false
-const tickSound = new Audio(
-  'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA='
-)
-tickSound.volume = 0.18
+  /* ==========================
+     DOM
+  ========================== */
 
-document.addEventListener(
-  'pointerdown',
-  () => {
-    if (audioUnlocked) return
-    tickSound.play().then(() => {
-      tickSound.pause()
-      tickSound.currentTime = 0
-      audioUnlocked = true
-    }).catch(() => {})
-  },
-  { once: true }
-)
+  const wheelNumber = document.getElementById('wheelNumber')
+  const minusBtn = document.querySelector('.minus')
+  const plusBtn = document.querySelector('.plus')
 
-function haptic() {
-  if (navigator.vibrate) navigator.vibrate(6)
-}
+  /* ==========================
+     STATE
+  ========================== */
 
-function playTick() {
-  if (!audioUnlocked) return
-  tickSound.currentTime = 0
-  tickSound.play().catch(() => {})
-}
+  let value = INITIAL_VALUE
+  let animating = false
+  let queuedDelta = 0
 
-/* ==========================
-   STATE
-========================== */
+  let activeDelta = 0
+  let didHold = false
+  let holdTimeout = null
+  let holdInterval = null
+  let holdSpeed = HOLD_START_SPEED
 
-let animating = false
-let queuedDelta = 0
+  /* ==========================
+     HAPTIC + SOUND
+  ========================== */
 
-function updateButtons() {
-  minusBtn.classList.toggle('disabled', value <= MIN)
-  plusBtn.classList.toggle('disabled', value >= MAX)
-}
+  let audioUnlocked = false
+  const tickSound = new Audio(
+    'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA='
+  )
+  tickSound.volume = 0.18
 
-/* ==========================
-   APPLE-STYLE HORIZONTAL ROLL
-========================== */
+  document.addEventListener(
+    'pointerdown',
+    () => {
+      if (audioUnlocked) return
+      tickSound.play().then(() => {
+        tickSound.pause()
+        tickSound.currentTime = 0
+        audioUnlocked = true
+      }).catch(() => {})
+    },
+    { once: true }
+  )
 
-function rollNumber(delta) {
-  if (
-    (delta < 0 && value <= MIN) ||
-    (delta > 0 && value >= MAX)
-  ) return
-
-  if (animating) {
-    queuedDelta += delta
-    return
+  const haptic = () => navigator.vibrate?.(6)
+  const playTick = () => {
+    if (!audioUnlocked) return
+    tickSound.currentTime = 0
+    tickSound.play().catch(() => {})
   }
 
-  animating = true
-  value += delta
+  /* ==========================
+     UI HELPERS
+  ========================== */
 
-  const oldNum = wheelNumber.querySelector('.num')
-  const newNum = document.createElement('div')
-  newNum.className = 'num'
-  newNum.textContent = value
+  function updateButtons() {
+    minusBtn.classList.toggle('disabled', value <= MIN)
+    plusBtn.classList.toggle('disabled', value >= MAX)
+  }
 
-  const dir = delta > 0 ? 1 : -1
+  /* ==========================
+     CORE WHEEL ANIMATION
+  ========================== */
 
-  // Start outside horizontally
-  newNum.style.transform = `translateX(${dir * 120}%)`
-  newNum.style.opacity = '0'
-  newNum.style.filter = 'blur(6px)'
+  function rollNumber(delta) {
+    if (
+      (delta < 0 && value <= MIN) ||
+      (delta > 0 && value >= MAX)
+    ) return
 
-  wheelNumber.appendChild(newNum)
-
-  requestAnimationFrame(() => {
-    // Old slides out
-    oldNum.style.transform = `translateX(${-dir * 120}%)`
-    oldNum.style.opacity = '0'
-    oldNum.style.filter = 'blur(6px)'
-
-    // New slides in
-    newNum.style.transform = 'translateX(0)'
-    newNum.style.opacity = '1'
-    newNum.style.filter = 'blur(0px)'
-  })
-
-  playTick()
-  haptic()
-  updateButtons()
-
-  setTimeout(() => {
-    oldNum.remove()
-    animating = false
-
-    if (queuedDelta !== 0) {
-      const next = Math.sign(queuedDelta)
-      queuedDelta -= next
-      rollNumber(next)
+    if (animating) {
+      queuedDelta += delta
+      return
     }
-  }, 380)
-}
 
-/* ==========================
-   TAP + LONG PRESS
-========================== */
+    animating = true
+    value += delta
 
-let holdTimeout = null
-let holdInterval = null
-let holdSpeed = 280
-let didHold = false
-let activeDelta = 0
+    const oldNum = wheelNumber.querySelector('.num')
+    const newNum = document.createElement('div')
+    newNum.className = 'num'
+    newNum.textContent = value
 
-function startPress(delta) {
-  activeDelta = delta
-  didHold = false
+    const dir = delta > 0 ? 1 : -1
 
-  holdTimeout = setTimeout(() => {
-    didHold = true
-    holdSpeed = 280
+    newNum.style.transform = `translateX(${dir * 120}%)`
+    newNum.style.opacity = '0'
+    newNum.style.filter = 'blur(6px)'
 
-    const step = () => {
+    wheelNumber.appendChild(newNum)
+
+    requestAnimationFrame(() => {
+      oldNum.style.transform = `translateX(${-dir * 120}%)`
+      oldNum.style.opacity = '0'
+      oldNum.style.filter = 'blur(6px)'
+
+      newNum.style.transform = 'translateX(0)'
+      newNum.style.opacity = '1'
+      newNum.style.filter = 'blur(0px)'
+    })
+
+    playTick()
+    haptic()
+    updateButtons()
+
+    setTimeout(() => {
+      oldNum.remove()
+      animating = false
+
+      if (queuedDelta !== 0) {
+        const next = Math.sign(queuedDelta)
+        queuedDelta -= next
+        rollNumber(next)
+      }
+    }, 380)
+  }
+
+  /* ==========================
+     TAP + LONG PRESS
+  ========================== */
+
+  function startPress(delta) {
+    activeDelta = delta
+    didHold = false
+
+    holdTimeout = setTimeout(() => {
+      didHold = true
+      holdSpeed = HOLD_START_SPEED
+
+      const step = () => {
+        rollNumber(activeDelta)
+
+        wheelNumber.style.transform = 'translateX(0.4px)'
+        setTimeout(() => {
+          wheelNumber.style.transform = 'translateX(0)'
+        }, 60)
+
+        holdSpeed = Math.max(HOLD_MIN_SPEED, holdSpeed * HOLD_ACCELERATION)
+        holdInterval = setTimeout(step, holdSpeed)
+      }
+
+      step()
+    }, HOLD_DELAY)
+  }
+
+  function endPress() {
+    clearTimeout(holdTimeout)
+    clearTimeout(holdInterval)
+
+    if (!didHold && activeDelta !== 0) {
       rollNumber(activeDelta)
-
-      // subtle sub-pixel polish
-      wheelNumber.style.transform = 'translateX(0.4px)'
-      setTimeout(() => {
-        wheelNumber.style.transform = 'translateX(0)'
-      }, 60)
-
-      holdSpeed = Math.max(70, holdSpeed * 0.85)
-      holdInterval = setTimeout(step, holdSpeed)
     }
 
-    step()
-  }, 180)
-}
-
-function endPress() {
-  clearTimeout(holdTimeout)
-  clearTimeout(holdInterval)
-
-  if (!didHold && activeDelta !== 0) {
-    rollNumber(activeDelta)
+    activeDelta = 0
+    didHold = false
   }
 
-  activeDelta = 0
-  didHold = false
-}
+  /* ==========================
+     EVENTS
+  ========================== */
 
-/* ==========================
-   EVENTS
-========================== */
+  plusBtn.addEventListener('pointerdown', () => startPress(1))
+  minusBtn.addEventListener('pointerdown', () => startPress(-1))
 
-plusBtn.addEventListener('pointerdown', () => startPress(1))
-minusBtn.addEventListener('pointerdown', () => startPress(-1))
+  document.addEventListener('pointerup', endPress)
+  document.addEventListener('pointerleave', endPress)
 
-document.addEventListener('pointerup', endPress)
-document.addEventListener('pointerleave', endPress)
-
-updateButtons()
+  updateButtons()
+})()
