@@ -6,7 +6,7 @@
 body {
   margin: 0;
   height: 100vh;
-  background: #f2f2f7;
+  background: #000000;
   display: grid;
   place-items: center;
 }
@@ -17,7 +17,7 @@ body {
   width: 150px;
   padding: 16px 14px 18px;
   border-radius: 22px;
-  background: #4a4a4a;
+  background: #212121;
   color: white;
   text-align: center;
 }
@@ -51,20 +51,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-
   font-size: 34px;
   font-weight: 500;
-
+  will-change: transform, opacity, filter;
   transition:
     transform 0.38s cubic-bezier(0.22, 1, 0.36, 1),
     opacity 0.28s ease,
     filter 0.28s ease;
-
-  will-change: transform, opacity, filter;
 }
-
-
-
 
 /* ===== Controls ===== */
 
@@ -79,7 +73,7 @@ body {
   height: 44px;
   border-radius: 50%;
   border: none;
-  background: white;
+  background: #4c4c4c;
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -97,8 +91,11 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at center,
-    rgba(0,0,0,0.15), transparent 60%);
+  background: radial-gradient(
+    circle at center,
+    rgba(0,0,0,0.15),
+    transparent 60%
+  );
   transform: scale(0);
   transition: transform 0.3s ease;
 }
@@ -107,25 +104,18 @@ body {
   transform: scale(1);
 }
 
-/* ===== Icons (optical centering) ===== */
-
+/* Optical centering */
 .icon {
-  font-size: 26px;
-  font-weight: 500;
-  line-height: 1;
-  display: block;
+  font-size:28px;
+  font-weight: 300;
+  line-height: 0;
+  color: white;
 }
 
-.minus-icon {
-  transform: translateY(-1px);
-}
+.minus-icon { transform: translateY(-1px); }
+.plus-icon  { transform: translateY(1px); }
 
-.plus-icon {
-  transform: translateY(1px);
-}
-
-/* ===== Disabled ===== */
-
+/* Disabled */
 .btn.disabled {
   opacity: 0.4;
   pointer-events: none;
