@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Cupertino Stepper</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cupertino Counter</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<div class="stepper-card">
+<div class="stepper-card" id="cupertinoStepper">
   <div class="label">Counter</div>
 
   <div class="value">
@@ -18,10 +18,10 @@
   </div>
 
   <div class="controls">
-    <button class="btn minus">
+    <button class="btn minus" aria-label="Decrease">
       <span class="icon minus-icon">−</span>
     </button>
-    <button class="btn plus">
+    <button class="btn plus" aria-label="Increase">
       <span class="icon plus-icon">+</span>
     </button>
   </div>
